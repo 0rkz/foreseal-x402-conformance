@@ -1,0 +1,22 @@
+{
+  "name": "foreseal-eip712-anchored-receipt",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Offline verifier + cross-impl conformance vector for a live PayPerByte EIP-712 PayloadAttestation receipt, emitting anchor_input = SHA-256(eip712_digest || signature) as the hand-off to an external existence-anchor. Provenance/tamper-evidence only, never data correctness. By BYTEDev Inc (PayPerByte / ForeSeal).",
+  "scripts": {
+    "verify": "node --import tsx src/cli.ts",
+    "vector": "node --import tsx src/run-vector.ts",
+    "vector:py": "python3 conformance/run_vector.py",
+    "vector:generate": "node --import tsx conformance/generate_vector.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "viem": "^2.53.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  }
+}

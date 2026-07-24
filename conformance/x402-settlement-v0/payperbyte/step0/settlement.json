@@ -1,0 +1,22 @@
+{
+  "actionRef": "sha256:77c088827fb6ba7f3cc7a38cde5aaa5ebf679a5947935da0d63366a67620b500",
+  "actionType": "x402.data.purchase",
+  "agentId": "agent:ppb-client/0xE87c9E192dF8dEdcC2389260B15427C38A4A0bA6",
+  "schema": "x402.settlement.base/v0",
+  "scope": "byte:payload/keccak256:5b493d6c8df2c1e6a4e4048cbb0e1e3f631f4d46906b65f156ddaca34dcda201",
+  "seq": 0,
+  "settlement": {
+    "amount": "100000",
+    "assertedFrom": "net-balance-change-to-payTo",
+    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    "decimals": 6,
+    "network": "eip155:8453",
+    "payTo": "0xffFf4B8Da8C165B556326453446F6940C8AFE0DB",
+    "rail": "base",
+    "scheme": "exact",
+    "txDigest": "0x60ebf28b80d5a3b67ae947e5d0eeb65746e3ebf84e24ba845cfbb756c84ddac3",
+    "verifiedBy": "facilitator://api.cdp.coinbase.com/platform/v2/x402"
+  },
+  "terminal": false,
+  "timestampMs": 1784840974000
+}

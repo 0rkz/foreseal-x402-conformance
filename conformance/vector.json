@@ -1,0 +1,359 @@
+{
+  "meta": {
+    "note": "Conformance vector for a live PayPerByte EIP-712 PayloadAttestation receipt. TS (viem) produced; both the TS and Python runners must reproduce every `expect` field. Genuine = the real captured receipt; adversarial cases are single mutations of it, all EXPECT rejection.",
+    "producer": "foreseal-eip712-anchored-receipt/conformance/generate_vector.ts (viem)",
+    "feed": "address-reputation ($0.10 x402, self-screen of our own Safe — no third-party data)",
+    "captured_at": "2026-07-23T21:09:48.639Z",
+    "settlement_tx": "https://basescan.org/tx/0x60ebf28b80d5a3b67ae947e5d0eeb65746e3ebf84e24ba845cfbb756c84ddac3",
+    "attestation_domain": {
+      "name": "BYTE Library",
+      "version": "1",
+      "chainId": 421614,
+      "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+    },
+    "pay_rail_network": "eip155:8453 (Base mainnet USDC) — SETTLEMENT ONLY, distinct from the attestation domain",
+    "delivery_publisher_recovered": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+    "provenance_signer_recovered": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+    "genuine_delivery_eip712_digest": "0x2a34c5db45d5cb816e1b5efee2fa6a28a013712469291b5a91a35f6f22406629",
+    "genuine_delivery_anchor_input": "0xcd7f1fd2045084b3024b07c9cebae1ce8d12f15ca2ea15116785038b57642f11",
+    "genuine_provenance_eip712_digest": "0x4e48dc83731e9092e5ad0078293434264ab1488a778d03cd637a933c70eb8c78",
+    "genuine_provenance_anchor_input": "0xbcbfbcce8ed01cfec9d83c4bcff315949d483b95ac199ae64c324a3f0da5c2f8"
+  },
+  "disclosure": {
+    "two_hashes": "TWO hashes, never conflated. (1) receipt payloadHash = keccak256(payload bytes). (2) anchor_input = SHA-256(eip712_digest ‖ signature). keccak256 is the receipt's own integrity hash; SHA-256 is only the hand-off to the anchor leg.",
+    "two_tiers": "TWO receipts per response, same frozen domain, BOTH keccak256 but over different byte ranges. DELIVERY tier (X-BYTE-Attestation header, signer = PayPerByte attester): payload = the ENTIRE response body. PROVENANCE tier (embedded in the body, signer = the data provider): payload = the `answer` value, sliced byte-exact via extractTopLevelValue (insertion-order compact JSON, ensure_ascii=True — never re-serialized).",
+    "domain_split": "The EIP-712 attestation domain is Arbitrum Sepolia testnet chainId 421614 (a FROZEN signing namespace, pre-audit — not a settlement rail). The USDC payment rail is Base mainnet chainId 8453. These are deliberately different chains; do not conflate the signing domain with the pay rail.",
+    "scope": "PROVENANCE / tamper-evidence ONLY. This proves which key signed these exact bytes (and, once anchored, that they existed before time T). It says NOTHING about whether the data is correct — that is a separate 'recompute-and-match' correctness concern, kept out of scope here.",
+    "anchor_leg": "The external existence-anchor (e.g. an OpenTimestamps/Bitcoin proof over anchor_input) is NOT part of this artifact and is NOT built here. This side computes anchor_input and stops. Nothing here asserts a settled Bitcoin timestamp or an inclusion proof — that is the anchor leg's job.",
+    "freshness": "TIME IS PINNED, DELIBERATELY AND DISCLOSED. A conformance vector cannot depend on wall-clock time, so each case carries an explicit now_seconds and the genuine cases are evaluated at deadline-1 (1784841286). IN REAL TIME THE RECEIPT'S DEADLINE HAS PASSED (delivery deadline 1784841287 = 2026-07-23T21:14:47.000Z). Do NOT read \"verified: true\" here as \"this receipt is currently live\" — it means \"these bytes verify when evaluated inside their freshness window\". Run the offline CLI (npm run verify) at real wall-clock and it correctly prints expired: true. The distinction is the point of the artifact: a signature's PROVENANCE is timeless — it proves forever which key signed these exact bytes — while a deadline is a short-lived freshness POLICY. Anchoring is what turns the timeless part into something durably checkable after expiry.",
+    "forked_domain_note": "The forked_domain case verifies the genuine signature under chainId 1: it recovers to a different address than under 421614, empirically demonstrating the signature is cryptographically bound to the frozen chainId (not merely a string-compare).",
+    "identity": "Recovery proves INTERNAL CONSISTENCY only: the signature recovers to the address the attestation itself names (meta.delivery_publisher_recovered / meta.provenance_signer_recovered), and matches a pin only when the caller supplies one out-of-band. The binding of those addresses to the labels 'PayPerByte attester' and 'data provider' is out-of-band — this artifact does not prove those identity bindings."
+  },
+  "cases": [
+    {
+      "name": "genuine",
+      "tier": "delivery",
+      "description": "The live X-BYTE-Attestation header receipt, unmodified. keccak256(whole body)==payloadHash; recovers to the delivery publisher under the frozen domain; unexpired AT THE PINNED EVALUATION TIME (now_seconds = deadline-1; see disclosure.freshness — the receipt's deadline has since passed in real time). EXPECT: verified.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"ALLOW\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "alg": "EIP712-PayloadAttestation",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        },
+        "publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+        "payloadHash": "0x5b493d6c8df2c1e6a4e4048cbb0e1e3f631f4d46906b65f156ddaca34dcda201",
+        "payloadLength": 2682,
+        "deadline": 1784841287,
+        "signature": "0xb91e16f00b42677572e24d77742287e99e0c2c926219ea6b4f75023464303cdd49e510a4250fe3563f01c11f651d09f76fb4574abb9ee6bb2a029b9c9b5c41e41c"
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+      "now_seconds": 1784841286,
+      "expect": {
+        "verified": true,
+        "hashMatch": true,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x77c86a5367d941091a31bc97104609f2db33c472",
+        "publisherMatch": true,
+        "attesterMatch": true,
+        "expired": false,
+        "eip712Digest": "0x2a34c5db45d5cb816e1b5efee2fa6a28a013712469291b5a91a35f6f22406629",
+        "anchorInput": "0xcd7f1fd2045084b3024b07c9cebae1ce8d12f15ca2ea15116785038b57642f11"
+      }
+    },
+    {
+      "name": "tampered_body",
+      "tier": "delivery",
+      "description": "The verdict inside the body was flipped (same byte length). keccak256 no longer matches payloadHash. EXPECT: hashMatch=false → rejected. This is the core tamper-evidence property.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"BLOCK\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "alg": "EIP712-PayloadAttestation",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        },
+        "publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+        "payloadHash": "0x5b493d6c8df2c1e6a4e4048cbb0e1e3f631f4d46906b65f156ddaca34dcda201",
+        "payloadLength": 2682,
+        "deadline": 1784841287,
+        "signature": "0xb91e16f00b42677572e24d77742287e99e0c2c926219ea6b4f75023464303cdd49e510a4250fe3563f01c11f651d09f76fb4574abb9ee6bb2a029b9c9b5c41e41c"
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+      "now_seconds": 1784841286,
+      "expect": {
+        "verified": false,
+        "hashMatch": false,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x77c86a5367d941091a31bc97104609f2db33c472",
+        "publisherMatch": true,
+        "attesterMatch": true,
+        "expired": false,
+        "eip712Digest": "0x2a34c5db45d5cb816e1b5efee2fa6a28a013712469291b5a91a35f6f22406629",
+        "anchorInput": "0xcd7f1fd2045084b3024b07c9cebae1ce8d12f15ca2ea15116785038b57642f11"
+      }
+    },
+    {
+      "name": "wrong_attester",
+      "tier": "delivery",
+      "description": "Genuine bytes + signature, but pinned to a DIFFERENT expected attester. Recovery still matches the header's own publisher, but not the pin. EXPECT: attesterMatch=false → rejected.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"ALLOW\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "alg": "EIP712-PayloadAttestation",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        },
+        "publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+        "payloadHash": "0x5b493d6c8df2c1e6a4e4048cbb0e1e3f631f4d46906b65f156ddaca34dcda201",
+        "payloadLength": 2682,
+        "deadline": 1784841287,
+        "signature": "0xb91e16f00b42677572e24d77742287e99e0c2c926219ea6b4f75023464303cdd49e510a4250fe3563f01c11f651d09f76fb4574abb9ee6bb2a029b9c9b5c41e41c"
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "now_seconds": 1784841286,
+      "expect": {
+        "verified": false,
+        "hashMatch": true,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x77c86a5367d941091a31bc97104609f2db33c472",
+        "publisherMatch": true,
+        "attesterMatch": false,
+        "expired": false,
+        "eip712Digest": "0x2a34c5db45d5cb816e1b5efee2fa6a28a013712469291b5a91a35f6f22406629",
+        "anchorInput": "0xcd7f1fd2045084b3024b07c9cebae1ce8d12f15ca2ea15116785038b57642f11"
+      }
+    },
+    {
+      "name": "expired",
+      "tier": "delivery",
+      "description": "Genuine receipt evaluated at now > deadline. EXPECT: expired=true → rejected (freshness).",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"ALLOW\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "alg": "EIP712-PayloadAttestation",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        },
+        "publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+        "payloadHash": "0x5b493d6c8df2c1e6a4e4048cbb0e1e3f631f4d46906b65f156ddaca34dcda201",
+        "payloadLength": 2682,
+        "deadline": 1784841287,
+        "signature": "0xb91e16f00b42677572e24d77742287e99e0c2c926219ea6b4f75023464303cdd49e510a4250fe3563f01c11f651d09f76fb4574abb9ee6bb2a029b9c9b5c41e41c"
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+      "now_seconds": 1784841288,
+      "expect": {
+        "verified": false,
+        "hashMatch": true,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x77c86a5367d941091a31bc97104609f2db33c472",
+        "publisherMatch": true,
+        "attesterMatch": true,
+        "expired": true,
+        "eip712Digest": "0x2a34c5db45d5cb816e1b5efee2fa6a28a013712469291b5a91a35f6f22406629",
+        "anchorInput": "0xcd7f1fd2045084b3024b07c9cebae1ce8d12f15ca2ea15116785038b57642f11"
+      }
+    },
+    {
+      "name": "forked_domain",
+      "tier": "delivery",
+      "description": "Same genuine bytes + signature, but verified under a FORKED domain (chainId 1 instead of 421614). The signature is cryptographically bound to the frozen chainId, so it recovers to a STRANGER, not the publisher. EXPECT: publisherMatch=false → rejected. Proves the frozen domain is load-bearing.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"ALLOW\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "alg": "EIP712-PayloadAttestation",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        },
+        "publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+        "payloadHash": "0x5b493d6c8df2c1e6a4e4048cbb0e1e3f631f4d46906b65f156ddaca34dcda201",
+        "payloadLength": 2682,
+        "deadline": 1784841287,
+        "signature": "0xb91e16f00b42677572e24d77742287e99e0c2c926219ea6b4f75023464303cdd49e510a4250fe3563f01c11f651d09f76fb4574abb9ee6bb2a029b9c9b5c41e41c"
+      },
+      "verify_domain": {
+        "name": "BYTE Library",
+        "version": "1",
+        "chainId": 1,
+        "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+      },
+      "expected_publisher": "0x77c86a5367d941091a31BC97104609F2Db33C472",
+      "now_seconds": 1784841286,
+      "expect": {
+        "verified": false,
+        "hashMatch": true,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x63cc119b802378355558ce719cfa9e4ca7066f27",
+        "publisherMatch": false,
+        "attesterMatch": false,
+        "expired": false,
+        "eip712Digest": "0x2a86bab6009cb5bddb559953d88c054cde69f917e409ce74e6161708e64d5266",
+        "anchorInput": "0x770251bd0a5d7458d0e5c4789f6d9f9961b3ba1f8add6dd5e9cfb67170aefc65"
+      }
+    },
+    {
+      "name": "genuine_provenance",
+      "tier": "provenance",
+      "description": "The embedded provenance receipt: keccak256(answer-slice via extractTopLevelValue)==embedded payloadHash; recovers to the data provider. EXPECT: verified. Demonstrates the answer-slice (insertion-order compact JSON) form.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"ALLOW\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "payloadHash": "0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f",
+        "payloadLength": 2095,
+        "deadline": 1784844587,
+        "signer": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+        "signature": "0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        }
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+      "now_seconds": 1784841286,
+      "expect": {
+        "verified": true,
+        "hashMatch": true,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x670444be8515c63c50166ebcd0e5b23c578bbe04",
+        "publisherMatch": true,
+        "attesterMatch": true,
+        "expired": false,
+        "eip712Digest": "0x4e48dc83731e9092e5ad0078293434264ab1488a778d03cd637a933c70eb8c78",
+        "anchorInput": "0xbcbfbcce8ed01cfec9d83c4bcff315949d483b95ac199ae64c324a3f0da5c2f8"
+      }
+    },
+    {
+      "name": "tampered_provenance",
+      "tier": "provenance",
+      "description": "Same single-byte-class mutation as tampered_body, but checked against the PROVENANCE tier. The flipped verdict sits at byte ~182 of the body — INSIDE the 2095-byte `answer` slice — so keccak256(slice) no longer matches the embedded payloadHash. EXPECT: hashMatch=false → rejected. Proves the answer-slice tier is tamper-evident in its own right, not merely covered by the delivery tier.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"BLOCK\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "payloadHash": "0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f",
+        "payloadLength": 2095,
+        "deadline": 1784844587,
+        "signer": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+        "signature": "0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        }
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+      "now_seconds": 1784841286,
+      "expect": {
+        "verified": false,
+        "hashMatch": false,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x670444be8515c63c50166ebcd0e5b23c578bbe04",
+        "publisherMatch": true,
+        "attesterMatch": true,
+        "expired": false,
+        "eip712Digest": "0x4e48dc83731e9092e5ad0078293434264ab1488a778d03cd637a933c70eb8c78",
+        "anchorInput": "0xbcbfbcce8ed01cfec9d83c4bcff315949d483b95ac199ae64c324a3f0da5c2f8"
+      }
+    },
+    {
+      "name": "wrong_provider",
+      "tier": "provenance",
+      "description": "Genuine bytes + embedded signature, pinned to a DIFFERENT expected provider. Recovery still matches the embedded receipt's own signer, but not the pin. EXPECT: attesterMatch=false → rejected. The provenance-tier analogue of wrong_attester: the recovered identity comes from the signature, never from the pin.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"ALLOW\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "payloadHash": "0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f",
+        "payloadLength": 2095,
+        "deadline": 1784844587,
+        "signer": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+        "signature": "0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        }
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "now_seconds": 1784841286,
+      "expect": {
+        "verified": false,
+        "hashMatch": true,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x670444be8515c63c50166ebcd0e5b23c578bbe04",
+        "publisherMatch": true,
+        "attesterMatch": false,
+        "expired": false,
+        "eip712Digest": "0x4e48dc83731e9092e5ad0078293434264ab1488a778d03cd637a933c70eb8c78",
+        "anchorInput": "0xbcbfbcce8ed01cfec9d83c4bcff315949d483b95ac199ae64c324a3f0da5c2f8"
+      }
+    },
+    {
+      "name": "expired_provenance",
+      "tier": "provenance",
+      "description": "Genuine embedded receipt evaluated at now > its OWN deadline (the embedded deadline differs from the delivery one). EXPECT: expired=true → rejected. Note the scope split: expiry is a freshness policy, not a provenance failure — the signature stays valid forever, which is exactly why anchoring is what makes it durable.",
+      "body": "{\"answer\":{\"v\":\"address-reputation/v1\",\"ts\":1784840974,\"query\":{\"domain\":\"payperbyte.io\",\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"amount\":0,\"chain\":\"base\"},\"verdict\":\"ALLOW\",\"score\":100,\"reasons\":[\"domain registration age unknown\",\"valid HTTPS certificate\",\"domain has mail (MX) records\",\"archived web history spans ~4y\",\"receiving address has on-chain history on Base mainnet (tx_count=1)\",\"receiving address is a deployed contract\"],\"signals\":{\"domain\":{\"rdap\":{\"creation_date\":null,\"age_days\":null,\"registrar\":null,\"source\":\"https://rdap.org/domain/payperbyte.io\",\"error\":\"ReadTimeout: HTTPSConnectionPool(host='rdap.org', port=443): Read timed out. (read timeout=10)\"},\"tls\":{\"has_https\":true,\"cert_valid\":true,\"issuer\":\"Let's Encrypt\",\"not_before\":\"Jun 26 22:35:07 2026 GMT\",\"not_after\":\"Sep 24 22:35:06 2026 GMT\",\"cert_age_days\":26,\"error\":null},\"dns\":{\"a_record\":true,\"mx_record\":true,\"source\":\"https://dns.google/resolve\",\"error\":null},\"wayback\":{\"first_seen\":\"2021-12-18T20:00:46Z\",\"age_days\":1678,\"source\":\"http://web.archive.org/cdx/search/cdx?url=payperbyte.io&output=json&limit=1&sort=ascending&fl=timestamp\",\"error\":null}},\"onchain\":{\"chain\":\"base\",\"chain_label\":\"Base mainnet\",\"chain_id\":8453,\"is_testnet\":false,\"address\":\"0xffff4b8da8c165b556326453446f6940c8afe0db\",\"tx_count\":1,\"balance_wei\":0,\"balance_eth\":0.0,\"is_contract\":true,\"is_delegated_eoa\":false,\"zero_history\":false,\"code_size\":171,\"latest_block\":49025813,\"source\":\"https://mainnet.base.org\",\"error\":null},\"blocklist\":{\"address_hit\":false,\"domain_hit\":false,\"source\":null,\"reason\":null,\"hits\":[],\"feed_status\":{\"seed_addresses\":1,\"seed_domains\":1,\"bulk_feeds\":\"off\",\"urlhaus_api\":\"off\"}}},\"retrieved_at\":\"2026-07-23T21:09:34Z\",\"methodology\":\"ar-v1\",\"input_hashes\":{\"domain\":\"0xd363468c364bf3c1a2cc62617cbd3be3b87a7a2f1f982dd2963f0cd82a30192f\",\"onchain\":\"0x0b87e8d317b09148979633293124170f877ba8faf18bbec623d0baf33de732ef\",\"blocklist\":\"0x7efbc0b52602dbe7c126366ea7543df21275d2d56f321836378bfd143b189552\"},\"source\":\"rdap.org + live TLS + dns.google + web.archive.org + public RPC + curated blocklist\",\"error\":null},\"broadcast\":{\"ok\":false,\"tx\":null,\"delivered\":0,\"note\":\"broadcast disabled (ADDRESS_REP_BROADCAST=0)\"},\"attestation\":{\"payloadHash\":\"0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f\",\"payloadLength\":2095,\"deadline\":1784844587,\"signer\":\"0x670444bE8515C63c50166EbcD0E5b23c578BbE04\",\"signature\":\"0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c\",\"domain\":{\"name\":\"BYTE Library\",\"version\":\"1\",\"chainId\":421614,\"verifyingContract\":\"0x44729bB148F46d8Db509E47b0453edc271e06e95\"}}}\n",
+      "body_encoding": "utf8",
+      "header": {
+        "payloadHash": "0x38ed25ba153654d842f76ea24a3c5e5197c99ae788d50d39c065f7063efdd60f",
+        "payloadLength": 2095,
+        "deadline": 1784844587,
+        "signer": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+        "signature": "0xab6c3218b2b811b05c5849079e6b22d881836dd11c74ba2bd6b604e1df53009f249b917ed4511ab5452b4e02a8e8be248bfeb5ae4d09216465b32a486e5c66a41c",
+        "domain": {
+          "name": "BYTE Library",
+          "version": "1",
+          "chainId": 421614,
+          "verifyingContract": "0x44729bB148F46d8Db509E47b0453edc271e06e95"
+        }
+      },
+      "verify_domain": null,
+      "expected_publisher": "0x670444bE8515C63c50166EbcD0E5b23c578BbE04",
+      "now_seconds": 1784844588,
+      "expect": {
+        "verified": false,
+        "hashMatch": true,
+        "lengthMatch": true,
+        "domainOk": true,
+        "recovered": "0x670444be8515c63c50166ebcd0e5b23c578bbe04",
+        "publisherMatch": true,
+        "attesterMatch": true,
+        "expired": true,
+        "eip712Digest": "0x4e48dc83731e9092e5ad0078293434264ab1488a778d03cd637a933c70eb8c78",
+        "anchorInput": "0xbcbfbcce8ed01cfec9d83c4bcff315949d483b95ac199ae64c324a3f0da5c2f8"
+      }
+    }
+  ]
+}

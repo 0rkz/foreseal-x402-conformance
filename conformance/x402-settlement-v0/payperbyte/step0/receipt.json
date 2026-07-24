@@ -1,0 +1,29 @@
+{
+  "alg": "ES256",
+  "backLink": {
+    "attestationDigest": "sha256:4d25838c420ad2be5d1fb7a06bb834e283f56d9f269c042b5e32e6b81670a58e",
+    "attestationNonce": "x402-payperbyte-0"
+  },
+  "decisionDerived": {
+    "decidedAt": "2026-07-23T21:09:34Z",
+    "decision": "allow",
+    "evidenceRef": {
+      "canonicalization": "JCS",
+      "digest": "sha256:b1855796ec4079fdeca9bf5d15181b51b20202d5edfd6e2a6122a101e676bd58",
+      "ref": "x402:action_ref/sha256:77c088827fb6ba7f3cc7a38cde5aaa5ebf679a5947935da0d63366a67620b500",
+      "schema": "x402.settlement.base/v0"
+    },
+    "policyId": "policy:foreseal-delivery-verify/1",
+    "reason": "delivery tier verified offline: keccak256(exact wire bytes) == payloadHash and EIP-712 recovery under the frozen BYTE Library/421614 domain == the named attester; provenance tier pending"
+  },
+  "issuerAsserted": {
+    "alg": "ES256",
+    "iat": "2026-07-23T21:09:34Z",
+    "iss": "issuer://foreseal-offline-verifier",
+    "nonce": "d-payperbyte-0",
+    "secretVersion": "v1",
+    "sub": "agent:ppb-client/0xE87c9E192dF8dEdcC2389260B15427C38A4A0bA6"
+  },
+  "signature": "d69e02c2b87ad7cee7967cb094de5491d0f92826d9a5acc700f011a3964f4720a127a44e1b6e2725c723b47a5b85fa709f4b6a892ee87ac7e1445da8ca052255",
+  "version": 1
+}

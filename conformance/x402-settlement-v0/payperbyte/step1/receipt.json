@@ -1,0 +1,29 @@
+{
+  "alg": "ES256",
+  "backLink": {
+    "attestationDigest": "sha256:4d25838c420ad2be5d1fb7a06bb834e283f56d9f269c042b5e32e6b81670a58e",
+    "attestationNonce": "x402-payperbyte-1"
+  },
+  "decisionDerived": {
+    "decidedAt": "2026-07-23T21:09:34Z",
+    "decision": "allow",
+    "evidenceRef": {
+      "canonicalization": "JCS",
+      "digest": "sha256:5babaed49899e87ebac99442314bb715874dea2489562e1f61325d3e6a51f1cb",
+      "ref": "x402:action_ref/sha256:c32cbd1867f2f376eb2c9a167c3ae008874f9123cdf633efab0adc8bfb2e381c",
+      "schema": "x402.settlement.base/v0"
+    },
+    "policyId": "policy:foreseal-delivery-verify/1",
+    "reason": "both tiers verified offline: delivery (whole-body bytes, gateway attester) and provenance (answer-slice bytes, provider key); verdict terminal"
+  },
+  "issuerAsserted": {
+    "alg": "ES256",
+    "iat": "2026-07-23T21:09:34Z",
+    "iss": "issuer://foreseal-offline-verifier",
+    "nonce": "d-payperbyte-1",
+    "secretVersion": "v1",
+    "sub": "agent:ppb-client/0xE87c9E192dF8dEdcC2389260B15427C38A4A0bA6"
+  },
+  "signature": "de4c4f2d326b7e5f19c55ea026b84294416b0551e11701cb72ea9f91c270cd83a609a167868e01966347d0d51b9eb88e90c59045f85e04c3244c984a7b0ca508",
+  "version": 1
+}
