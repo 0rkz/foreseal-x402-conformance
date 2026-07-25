@@ -76,6 +76,7 @@ npm run verify                      # or: npm run verify -- path/to/capture.json
 
 # 2) the conformance vector — 2 genuine + 7 adversarial (all must reject), in BOTH languages:
 npm run vector                      # TypeScript (viem)
+pip install eth_account             # (in a venv, per the note below) — for the Python leg
 npm run vector:py                   # Python  (eth_account) — same vector.json, cross-impl parity
 npm run typecheck
 ```
@@ -128,7 +129,8 @@ Everything derives from the committed capture plus the public chain its `txDiges
 - **`timestampMs`** = the `answer.ts` field *inside the signed payload* — hash-bound by both tiers.
 
 ```bash
-pip install rfc8785 cryptography
+python3 -m venv .venv && . .venv/bin/activate     # Debian/Ubuntu/Homebrew pythons are PEP-668 managed:
+pip install rfc8785 cryptography                  # a bare `pip install` errors out there
 python3 conformance/x402-settlement-v0/run_payperbyte.py   # 7 upstream verdicts + 4 rail joins
 ```
 
