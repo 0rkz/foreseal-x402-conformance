@@ -142,6 +142,15 @@ signs nothing but these fixtures and is **not** a PayPerByte production key; (2)
 Per §5's normative presentation rules: green means the record recomputes and the binding resolves —
 not an outcome claim, not issuer honesty, not an independent conduct finding, not existence-at-a-time.
 
+## License
+
+**Apache-2.0** (see `LICENSE`) — with one exception you should know about before adopting or
+redistributing: `conformance/x402-settlement-v0/_check_independent.py` is vendored byte-identical
+from `vaaraio/vaara`, which is **AGPL-3.0**, so that file stays AGPL-3.0 and we claim nothing over
+it. It ships unmodified and hash-pinned precisely so the rail is checked by upstream's own checker
+rather than by our reimplementation of it. Full detail, and how to drop it if you'd rather not
+redistribute AGPL code, is in `NOTICE`.
+
 ## Files — this is the complete manifest; nothing else ships
 
 ```
@@ -152,8 +161,10 @@ src/run-vector.ts      TS conformance runner
 conformance/vector.json          the 9 cases + the disclosure block (incl. disclosure.freshness)
 conformance/generate_vector.ts   producer (the real verifier is the oracle)
 conformance/run_vector.py        Python cross-impl runner
+LICENSE / NOTICE                 Apache-2.0, plus the AGPL carve-out for the vendored checker
 conformance/x402-settlement-v0/  the #2666 payperbyte rail:
-    _check_independent.py        upstream checker, vendored byte-identical (sha256-pinned)
+    _check_independent.py        upstream checker, vendored byte-identical (sha256-pinned) — AGPL-3.0
+    LICENSE.upstream-AGPL-3.0    upstream terms for that one file
     CHECKER.sha256               the pin the runner enforces
     _generate.py                 fixture producer (re-mintable, idempotent)
     run_payperbyte.py            rail runner (7 upstream verdicts + 4 rail joins)

@@ -1,0 +1,44 @@
+foreseal-x402-conformance
+Copyright 2026 BYTEDev, Inc.
+
+Licensed under the Apache License, Version 2.0 — see LICENSE — WITH ONE EXCEPTION,
+stated below because it matters to anyone intending to adopt or redistribute this suite.
+
+--------------------------------------------------------------------------------
+Vendored upstream file — NOT Apache-2.0
+--------------------------------------------------------------------------------
+
+  conformance/x402-settlement-v0/_check_independent.py
+
+is vendored BYTE-IDENTICAL from vaaraio/vaara:
+
+  tag     v1.1.1
+  commit  719827ce35544ee7d702c1402613d28d0e5a2552
+  tree    c25f5fcac8d965d0a90021ce97fca54468961fe7
+  path    tests/vectors/x402_settlement_v0/_check_independent.py
+  sha256  c6af0937632b83c8563c7197eddfa40a5838d78a238bcbe00f097061d3c3a07d
+
+vaaraio/vaara is licensed GNU AGPL-3.0. That file therefore remains under AGPL-3.0, not
+Apache-2.0; BYTEDev claims nothing over it and has not modified it. A copy of the AGPL-3.0
+text sits beside it as LICENSE.upstream-AGPL-3.0.
+
+It is included unmodified, pinned by content hash, so that the `payperbyte` rail is checked
+by the upstream project's OWN checker rather than by our reimplementation of it — which is
+the evidential point of the rail. `run_payperbyte.py` refuses to run if that file's sha256
+does not match the pin above.
+
+If you would rather not redistribute AGPL-licensed code: delete that one file and fetch it
+yourself from the pinned commit before running the rail. Nothing else here depends on it,
+and the sha256 above lets you confirm you fetched the same bytes.
+
+Everything else in this repository — the offline EIP-712 verifier, the conformance vector
+and its runners, the rail fixtures, the generator, and the documentation — is BYTEDev, Inc.
+work under Apache-2.0.
+
+--------------------------------------------------------------------------------
+Other attribution
+--------------------------------------------------------------------------------
+
+  src/canonical.ts  (extractTopLevelValue)
+
+is vendored from @foreseal/screen-before-you-pay, also BYTEDev, Inc., under Apache-2.0.
