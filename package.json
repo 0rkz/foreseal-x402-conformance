@@ -9,6 +9,7 @@
     "verify": "node --import tsx src/cli.ts",
     "vector": "node --import tsx src/run-vector.ts",
     "vector:py": "python3 conformance/run_vector.py",
+    "anchor:preimage": "node --import tsx src/emit-preimage.ts",
     "vector:generate": "node --import tsx conformance/generate_vector.ts",
     "typecheck": "tsc --noEmit"
   },

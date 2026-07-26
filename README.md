@@ -88,8 +88,9 @@ and `meta.genuine_provenance_anchor_commitment` in the vector. Emitted by two in
 implementations that must agree byte-for-byte:
 
 ```bash
-npx tsx -e "..."                                  # src/anchorPreimage.ts
-python3 conformance/anchor_preimage.py --write out/   # conformance/anchor_preimage.py
+npm run anchor:preimage -- out/                       # TypeScript (src/anchorPreimage.ts)
+python3 conformance/anchor_preimage.py --write out2/  # Python  (conformance/anchor_preimage.py)
+cmp out/delivery.preimage.bin out2/delivery.preimage.bin   # must be byte-identical
 ```
 
 Format specified by Markovian Protocol as the interop shape for `tlog-bitcoin-anchor`, carrying
