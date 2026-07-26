@@ -66,6 +66,37 @@ at `deadline - 1`. **In real time this receipt's deadline has passed.** So `"ver
 receipt. Run `npm run verify` at real wall-clock and it correctly prints `expired: true` alongside
 `PROVENANCE HOLDS`.
 
+
+## What an anchor actually stamps — `foreseal-receipt-anchor/v1`
+
+`anchor_input` (SHA-256 over the raw 32-byte digest ‖ 65-byte signature) is an intermediate. The
+bytes an external existence-anchor actually stamps are a **defined file format**, because
+`ots stamp` takes files, not digests — handed a bare hex value, the natural move is to stamp the
+ASCII hex, which commits the wrong thing.
+
+Exactly four LF-terminated lines, no blanks, no trailing content:
+
+```
+foreseal-receipt-anchor/v1
+domain=eip155:421614 BYTE Library
+digest=0x<eip712_digest, 32 bytes hex>
+sig=0x<signature, 65 bytes hex>
+```
+
+The commitment is **SHA-256 over exactly those bytes** — `meta.genuine_delivery_anchor_commitment`
+and `meta.genuine_provenance_anchor_commitment` in the vector. Emitted by two independent
+implementations that must agree byte-for-byte:
+
+```bash
+npx tsx -e "..."                                  # src/anchorPreimage.ts
+python3 conformance/anchor_preimage.py --write out/   # conformance/anchor_preimage.py
+```
+
+Format specified by Markovian Protocol as the interop shape for `tlog-bitcoin-anchor`, carrying
+our tag rather than theirs — the point of the format is domain separation and versioning, not
+whose name is on it. The `domain` line is human-readable context, not a security boundary: the
+EIP-712 digest already commits to the full domain separator.
+
 ## Run it
 
 ```bash
@@ -155,12 +186,14 @@ redistribute AGPL code, is in `NOTICE`.
 
 ```
 src/verify.ts          byte-exact two-tier verifier + eip712Digest + anchorInput
+src/anchorPreimage.ts  foreseal-receipt-anchor/v1 emitter (the bytes an anchor stamps)
 src/canonical.ts       extractTopLevelValue — vendored verbatim from @foreseal/screen-before-you-pay
 src/cli.ts             offline CLI over a capture file
 src/run-vector.ts      TS conformance runner
 conformance/vector.json          the 9 cases + the disclosure block (incl. disclosure.freshness)
 conformance/generate_vector.ts   producer (the real verifier is the oracle)
 conformance/run_vector.py        Python cross-impl runner
+conformance/anchor_preimage.py   the v1 emitter in Python — must match the TS bytes exactly
 LICENSE / NOTICE                 Apache-2.0, plus the AGPL carve-out for the vendored checker
 conformance/x402-settlement-v0/  the #2666 payperbyte rail:
     _check_independent.py        upstream checker, vendored byte-identical (sha256-pinned) — AGPL-3.0

@@ -10,6 +10,7 @@
  *   npm run vector:generate
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { anchorPreimage, anchorCommitment } from "../src/anchorPreimage.js";
 import {
   verifyDeliveryReceipt,
   verifyProvenanceReceipt,
@@ -227,6 +228,12 @@ async function main(): Promise<void> {
       // the delivery tier's were surfaced here — asymmetric for the tier the counterparty re-checks.
       genuine_provenance_eip712_digest: provenanceDigest,
       genuine_provenance_anchor_input: provenanceAnchor,
+      // foreseal-receipt-anchor/v1 — the bytes an external anchor actually stamps, and the
+      // SHA-256 it therefore commits to. See disclosure.anchor_preimage.
+      genuine_delivery_anchor_commitment: anchorCommitment(
+        anchorPreimage(genuineDigest, delivery.signature, { name: EXPECTED_DOMAIN.name, chainId: EXPECTED_DOMAIN.chainId })),
+      genuine_provenance_anchor_commitment: anchorCommitment(
+        anchorPreimage(provenanceDigest, embedded.signature, { name: EXPECTED_DOMAIN.name, chainId: EXPECTED_DOMAIN.chainId })),
     },
     disclosure: {
       two_hashes:
@@ -245,6 +252,8 @@ async function main(): Promise<void> {
         "The forked_domain case verifies the genuine signature under chainId 1: it recovers to a different address than under 421614, empirically demonstrating the signature is cryptographically bound to the frozen chainId (not merely a string-compare).",
       // M5: the artifact proves recovered == the address the receipt NAMES. That the named addresses
       // are "the PayPerByte attester" / "the data provider" is a label, bound out-of-band.
+      anchor_preimage:
+        "WHAT AN ANCHOR ACTUALLY STAMPS is `foreseal-receipt-anchor/v1`: exactly four LF-terminated lines — the tag, `domain=eip155:<chainId> <name>`, `digest=0x<eip712_digest>`, `sig=0x<signature>` — and the commitment is SHA-256 over those bytes (meta.genuine_*_anchor_commitment). `anchor_input` (SHA-256 over the raw 32-byte digest ‖ 65-byte signature) is the earlier bare-digest form and is retained as an intermediate; it is NOT what gets stamped. The format exists because `ots stamp` takes files, not digests: handed a bare hex value the natural move is to stamp the ASCII hex, which commits the wrong thing. Format specified by Markovian Protocol as the interop shape; the domain line is human-readable context, not a security boundary — the EIP-712 digest already commits to the full domain separator.",
       identity:
         "Recovery proves INTERNAL CONSISTENCY only: the signature recovers to the address the attestation itself names (meta.delivery_publisher_recovered / meta.provenance_signer_recovered), and matches a pin only when the caller supplies one out-of-band. The binding of those addresses to the labels 'PayPerByte attester' and 'data provider' is out-of-band — this artifact does not prove those identity bindings.",
     },
