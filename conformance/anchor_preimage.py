@@ -30,13 +30,14 @@ TAG = "foreseal-receipt-anchor/v1"
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 
-_HEX = re.compile(r"^0x[0-9a-f]+$")
-
-
 def _require_hex(label: str, v: str, byte_len: int) -> str:
+    """Fail closed. Uses re.fullmatch with an EXACT nibble count — deliberately not `^...$` with a
+    floor-division length test, which accepted two malformed classes the TS emitter rejected:
+    an odd nibble count (floor division rounded it away) and a trailing newline (Python's `$`
+    matches before a final \\n, which would have emitted a FIVE-line preimage)."""
     s = v.lower()
-    if not _HEX.match(s) or (len(s) - 2) // 2 != byte_len:
-        raise ValueError(f"{label} must be 0x-prefixed {byte_len}-byte hex, got {len(v)} chars")
+    if not re.fullmatch(r"0x[0-9a-f]{%d}" % (byte_len * 2), s):
+        raise ValueError(f"{label} must be 0x-prefixed {byte_len}-byte hex, got {v!r}")
     return s
 
 
