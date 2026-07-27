@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""anchor_preimage.py — Python side of `foreseal-receipt-anchor/v1`.
+"""anchor_preimage.py — Python side of `payperbyte.io/x402-anchor/receipt/v2-sig`.
 
 Independent of the TypeScript emitter (src/anchorPreimage.ts) and must produce BYTE-IDENTICAL
 files. Cross-impl agreement is the point: a preimage format only works as an interop shape if two
@@ -7,13 +7,15 @@ implementations written separately land on the same bytes.
 
 Format — exactly four LF-terminated lines, no blank lines, no trailing content:
 
-    foreseal-receipt-anchor/v1\n
-    domain=eip155:<chainId> <domain name>\n
+    payperbyte.io/x402-anchor/receipt/v2-sig\n
+    tier=<delivery|provenance>\n
     digest=0x<eip712_digest, 32 bytes hex>\n
-    sig=0x<signature, 65 bytes hex>\n
+    signer=0x<EIP-55 address the receipt recovers to>\n
 
 Commitment = SHA-256 over exactly those bytes. `ots stamp <file>` then commits that value, and
-`ots info <file>.ots` prints it back offline.
+`ots info <file>.ots` prints it back offline. The signature is NOT in the preimage — v2-sig
+commits the signer and carries the signature alongside. The superseded fused v1
+(`foreseal-receipt-anchor/v1`) is kept below only for lineage and the negative tests.
 
     python3 conformance/anchor_preimage.py            # emit + verify both tiers, cross-check TS
     python3 conformance/anchor_preimage.py --write DIR # also write the .bin files

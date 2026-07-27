@@ -189,14 +189,14 @@ redistribute AGPL code, is in `NOTICE`.
 
 ```
 src/verify.ts          byte-exact two-tier verifier + eip712Digest + anchorInput
-src/anchorPreimage.ts  foreseal-receipt-anchor/v1 emitter (the bytes an anchor stamps)
+src/anchorPreimage.ts  payperbyte.io/x402-anchor/receipt/v2-sig emitter (the bytes an anchor stamps)
 src/canonical.ts       extractTopLevelValue — vendored verbatim from @foreseal/screen-before-you-pay
 src/cli.ts             offline CLI over a capture file
 src/run-vector.ts      TS conformance runner
 conformance/vector.json          the 9 cases + the disclosure block (incl. disclosure.freshness)
 conformance/generate_vector.ts   producer (the real verifier is the oracle)
 conformance/run_vector.py        Python cross-impl runner
-conformance/anchor_preimage.py   the v1 emitter in Python — must match the TS bytes exactly
+conformance/anchor_preimage.py   the v2-sig emitter in Python — must match the TS bytes exactly (superseded v1 kept for lineage)
 LICENSE / NOTICE                 Apache-2.0, plus the AGPL carve-out for the vendored checker
 requirements.txt                 Python deps for both the vector and the settlement rail
 conformance/x402-settlement-v0/  the #2666 payperbyte rail:

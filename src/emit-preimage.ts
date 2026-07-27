@@ -1,5 +1,5 @@
 /**
- * emit-preimage.ts — write the `foreseal-receipt-anchor/v1` preimage files for both tiers.
+ * emit-preimage.ts — write the `payperbyte.io/x402-anchor/receipt/v2-sig` preimage files for both tiers.
  *
  *   npm run anchor:preimage            # print the commitments
  *   npm run anchor:preimage -- out/    # also write <tier>.preimage.bin

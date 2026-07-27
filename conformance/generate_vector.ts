@@ -228,8 +228,8 @@ async function main(): Promise<void> {
       // the delivery tier's were surfaced here — asymmetric for the tier the counterparty re-checks.
       genuine_provenance_eip712_digest: provenanceDigest,
       genuine_provenance_anchor_input: provenanceAnchor,
-      // foreseal-receipt-anchor/v1 — the bytes an external anchor actually stamps, and the
-      // SHA-256 it therefore commits to. See disclosure.anchor_preimage.
+      // payperbyte.io/x402-anchor/receipt/v2-sig — the bytes an external anchor actually stamps,
+      // and the SHA-256 it therefore commits to. See disclosure.anchor_preimage.
       genuine_delivery_anchor_commitment_v2: anchorCommitment(
         anchorPreimageV2("delivery", genuineDigest, genuinePublisher)),
       genuine_provenance_anchor_commitment_v2: anchorCommitment(
@@ -256,7 +256,7 @@ async function main(): Promise<void> {
       // M5: the artifact proves recovered == the address the receipt NAMES. That the named addresses
       // are "the PayPerByte attester" / "the data provider" is a label, bound out-of-band.
       anchor_preimage:
-        "WHAT AN ANCHOR ACTUALLY STAMPS is `foreseal-receipt-anchor/v1`: exactly four LF-terminated lines — the tag, `domain=eip155:<chainId> <name>`, `digest=0x<eip712_digest>`, `sig=0x<signature>` — and the commitment is SHA-256 over those bytes (meta.genuine_*_anchor_commitment). `anchor_input` (SHA-256 over the raw 32-byte digest ‖ 65-byte signature) is the earlier bare-digest form and is retained as an intermediate; it is NOT what gets stamped. The format exists because `ots stamp` takes files, not digests: handed a bare hex value the natural move is to stamp the ASCII hex, which commits the wrong thing. Format specified by Markovian Protocol as the interop shape; the domain line is human-readable context, not a security boundary — the EIP-712 digest already commits to the full domain separator.",
+        "WHAT AN ANCHOR ACTUALLY STAMPS is `payperbyte.io/x402-anchor/receipt/v2-sig`: exactly four LF-terminated lines — the tag, `tier=<delivery|provenance>`, `digest=0x<eip712_digest>`, `signer=0x<EIP-55 address>` — and the commitment is SHA-256 over those bytes (meta.genuine_*_anchor_commitment_v2). The signature is deliberately NOT in the preimage: v2-sig commits the signer and carries the signature alongside, so existence-in-time is checkable without trusting the key and the key is checkable without re-deriving the anchor. The separation mirrors rootcommit/v2-sig in MarkovianProtocol/tlog-bitcoin-anchor; the tag uses that convention on a domain we control. The superseded fused form `foreseal-receipt-anchor/v1` (digest+sig in the preimage) is retained only as lineage in meta.genuine_delivery_anchor_commitment_v1, and `anchor_input` (SHA-256 over the raw 32-byte digest ‖ 65-byte signature) remains an intermediate; neither is what gets stamped. The file format exists because `ots stamp` takes files, not digests: handed a bare hex value the natural move is to stamp the ASCII hex, which commits the wrong thing. There is no domain line — the EIP-712 digest already commits to the full domain separator.",
       identity:
         "Recovery proves INTERNAL CONSISTENCY only: the signature recovers to the address the attestation itself names (meta.delivery_publisher_recovered / meta.provenance_signer_recovered), and matches a pin only when the caller supplies one out-of-band. The binding of those addresses to the labels 'PayPerByte attester' and 'data provider' is out-of-band — this artifact does not prove those identity bindings.",
     },
