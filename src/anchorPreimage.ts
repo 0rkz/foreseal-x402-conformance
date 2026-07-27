@@ -1,5 +1,8 @@
 /**
- * anchorPreimage.ts — `foreseal-receipt-anchor/v1`: the exact bytes an external existence-anchor
+ * anchorPreimage.ts — the exact bytes an external existence-anchor stamps.
+ *
+ * CURRENT: `payperbyte.io/x402-anchor/receipt/v2-sig` (anchorPreimageV2) — commits the SIGNER,
+ * carries the signature alongside. SUPERSEDED: `foreseal-receipt-anchor/v1`: the exact bytes an external existence-anchor
  * stamps for one PayPerByte EIP-712 receipt.
  *
  * WHY A FILE FORMAT AND NOT A BARE DIGEST. `ots stamp` takes files, not digests. Hand a stamper a
@@ -27,9 +30,46 @@
  * digest it sits beside. It is there so the stamped bytes are self-describing to someone reading
  * the preimage years later with no other context.
  */
-import { sha256, type Hex } from "viem";
+import { sha256, getAddress, type Hex } from "viem";
 
 export const ANCHOR_PREIMAGE_TAG = "foreseal-receipt-anchor/v1";
+
+/** v2-sig. Tag follows Markovian's `domain/purpose/object/version` convention on a domain we
+ *  actually control (they suggested foreseal.io; it does not resolve, and minting a format
+ *  identifier on a domain we do not own would age badly). */
+export const ANCHOR_PREIMAGE_TAG_V2 = "payperbyte.io/x402-anchor/receipt/v2-sig";
+
+export type Tier = "delivery" | "provenance";
+
+/**
+ * v2-sig preimage — four LF-terminated lines:
+ *
+ *   payperbyte.io/x402-anchor/receipt/v2-sig\n
+ *   tier=<delivery|provenance>\n
+ *   digest=0x<eip712_digest, 32 bytes hex>\n
+ *   signer=0x<EIP-55 address the receipt recovers to>\n
+ *
+ * The SIGNATURE IS NOT IN THE PREIMAGE. That is the whole point of v2-sig, per Markovian's
+ * rootcommit/v2-sig: commit the signER, carry the signATURE alongside. Splitting them means a
+ * third party can check existence-in-time without trusting our key, and check our key without
+ * re-deriving the anchor. v1 (below) fused `SHA-256(digest ‖ sig)` and is superseded.
+ *
+ * The receipt's own EIP-712 PayloadAttestation signature is the "who" layer — it recovers to
+ * `signer`, so no additional signature is minted. The EIP-712 digest already commits to the full
+ * domain separator (name, version, chainId, verifyingContract), so dropping v1's `domain=` line
+ * loses no binding — the domain is inside `digest`.
+ */
+export function anchorPreimageV2(tier: Tier, digest: Hex, signer: string): Uint8Array {
+  if (tier !== "delivery" && tier !== "provenance") throw new Error(`unknown tier: ${tier}`);
+  const checksummed = getAddress(signer); // EIP-55; throws on a malformed address
+  const lines = [
+    ANCHOR_PREIMAGE_TAG_V2,
+    `tier=${tier}`,
+    `digest=${requireHex("digest", digest, 32)}`,
+    `signer=${checksummed}`,
+  ];
+  return new TextEncoder().encode(lines.map((l) => l + "\n").join(""));
+}
 
 export interface AnchorDomain {
   name: string;

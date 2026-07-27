@@ -26,7 +26,11 @@ import json
 import re
 from pathlib import Path
 
-TAG = "foreseal-receipt-anchor/v1"
+from eth_utils import to_checksum_address
+
+TAG = "foreseal-receipt-anchor/v1"          # superseded — fused digest+sig
+TAG_V2 = "payperbyte.io/x402-anchor/receipt/v2-sig"
+TIERS = ("delivery", "provenance")
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 
@@ -56,6 +60,32 @@ def anchor_preimage(digest: str, signature: str, name: str, chain_id: int) -> by
     return "".join(l + "\n" for l in lines).encode("utf-8")
 
 
+def anchor_preimage_v2(tier: str, digest: str, signer: str) -> bytes:
+    """v2-sig preimage — four LF-terminated lines: tag / tier= / digest= / signer=.
+
+    The SIGNATURE IS DELIBERATELY ABSENT. Per Markovian's rootcommit/v2-sig, the preimage commits
+    the signER and the signATURE is carried alongside, so existence-in-time is checkable without
+    trusting our key and our key is checkable without re-deriving the anchor. v1 fused them.
+
+    `signer` is EIP-55 checksummed; a mismatched checksum is rejected rather than silently
+    normalised, because the checksum is the only typo protection the address has.
+    """
+    if tier not in TIERS:
+        raise ValueError(f"tier must be one of {TIERS}, got {tier!r}")
+    if "\n" in signer or "\r" in signer:
+        raise ValueError("signer must not contain CR or LF")
+    checksummed = to_checksum_address(signer)
+    if signer != checksummed and signer.lower() != signer:
+        raise ValueError(f"signer {signer!r} has a bad EIP-55 checksum (expected {checksummed})")
+    lines = [
+        TAG_V2,
+        f"tier={tier}",
+        f"digest={_require_hex('digest', digest, 32)}",
+        f"signer={checksummed}",
+    ]
+    return "".join(l + "\n" for l in lines).encode("utf-8")
+
+
 def anchor_commitment(preimage: bytes) -> str:
     return "0x" + hashlib.sha256(preimage).hexdigest()
 
@@ -76,13 +106,17 @@ def main() -> int:
         ),
     }
 
+    signers = {
+        "delivery": vec["meta"]["delivery_publisher_recovered"],
+        "provenance": vec["meta"]["provenance_signer_recovered"],
+    }
     rc = 0
     for tier, (digest, sig) in tiers.items():
-        pre = anchor_preimage(digest, sig, dom["name"], int(dom["chainId"]))
+        pre = anchor_preimage_v2(tier, digest, signers[tier])
         commit = anchor_commitment(pre)
         print(f"[{tier}] preimage {len(pre)} B  commitment {commit}")
         print("    " + repr(pre.decode()).replace("\\n", "\\n\n      ")[:0] or "", end="")
-        expected = vec["meta"].get(f"genuine_{tier}_anchor_commitment")
+        expected = vec["meta"].get(f"genuine_{tier}_anchor_commitment_v2")
         if expected and expected != commit:
             print(f"    MISMATCH vs vector.json: {expected}")
             rc = 1

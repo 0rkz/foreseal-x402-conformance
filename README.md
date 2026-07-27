@@ -67,24 +67,31 @@ receipt. Run `npm run verify` at real wall-clock and it correctly prints `expire
 `PROVENANCE HOLDS`.
 
 
-## What an anchor actually stamps — `foreseal-receipt-anchor/v1`
+## What an anchor actually stamps — `payperbyte.io/x402-anchor/receipt/v2-sig`
 
-`anchor_input` (SHA-256 over the raw 32-byte digest ‖ 65-byte signature) is an intermediate. The
-bytes an external existence-anchor actually stamps are a **defined file format**, because
-`ots stamp` takes files, not digests — handed a bare hex value, the natural move is to stamp the
-ASCII hex, which commits the wrong thing.
+`anchor_input` (SHA-256 over the raw 32-byte digest ‖ 65-byte signature) is an intermediate, and
+the fused shape is **superseded**. The bytes an external existence-anchor actually stamps are a
+**defined file format**, because `ots stamp` takes files, not digests — handed a bare hex value,
+the natural move is to stamp the ASCII hex, which commits the wrong thing.
 
 Exactly four LF-terminated lines, no blanks, no trailing content:
 
 ```
-foreseal-receipt-anchor/v1
-domain=eip155:421614 BYTE Library
+payperbyte.io/x402-anchor/receipt/v2-sig
+tier=<delivery|provenance>
 digest=0x<eip712_digest, 32 bytes hex>
-sig=0x<signature, 65 bytes hex>
+signer=0x<EIP-55 address the receipt recovers to>
 ```
 
-The commitment is **SHA-256 over exactly those bytes** — `meta.genuine_delivery_anchor_commitment`
-and `meta.genuine_provenance_anchor_commitment` in the vector. Emitted by two independent
+**The signature is not in the preimage** — v2-sig commits the *signer* and carries the *signature*
+alongside, so existence-in-time is checkable without trusting our key and our key is checkable
+without re-deriving the anchor. The receipt's own EIP-712 signature is the "who" layer; it already
+recovers to `signer`, so nothing new is minted. No `domain=` line: the EIP-712 digest already
+commits to the full domain separator. Shape follows Markovian's `rootcommit/v2-sig`
+(`rootcommit/SPEC_SIG.md` in tlog-bitcoin-anchor); the tag is ours, on a domain we control.
+
+The commitment is **SHA-256 over exactly those bytes** — `meta.genuine_delivery_anchor_commitment_v2`
+and `meta.genuine_provenance_anchor_commitment_v2` in the vector (the `_v1` value is kept for lineage). Emitted by two independent
 implementations that must agree byte-for-byte:
 
 ```bash
@@ -92,11 +99,6 @@ npm run anchor:preimage -- out/                       # TypeScript (src/anchorPr
 python3 conformance/anchor_preimage.py --write out2/  # Python  (conformance/anchor_preimage.py)
 cmp out/delivery.preimage.bin out2/delivery.preimage.bin   # must be byte-identical
 ```
-
-Format specified by Markovian Protocol as the interop shape for `tlog-bitcoin-anchor`, carrying
-our tag rather than theirs — the point of the format is domain separation and versioning, not
-whose name is on it. The `domain` line is human-readable context, not a security boundary: the
-EIP-712 digest already commits to the full domain separator.
 
 ## Run it
 

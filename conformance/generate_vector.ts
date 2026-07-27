@@ -10,7 +10,7 @@
  *   npm run vector:generate
  */
 import { readFileSync, writeFileSync } from "node:fs";
-import { anchorPreimage, anchorCommitment } from "../src/anchorPreimage.js";
+import { anchorPreimage, anchorPreimageV2, anchorCommitment } from "../src/anchorPreimage.js";
 import {
   verifyDeliveryReceipt,
   verifyProvenanceReceipt,
@@ -230,10 +230,13 @@ async function main(): Promise<void> {
       genuine_provenance_anchor_input: provenanceAnchor,
       // foreseal-receipt-anchor/v1 — the bytes an external anchor actually stamps, and the
       // SHA-256 it therefore commits to. See disclosure.anchor_preimage.
-      genuine_delivery_anchor_commitment: anchorCommitment(
+      genuine_delivery_anchor_commitment_v2: anchorCommitment(
+        anchorPreimageV2("delivery", genuineDigest, genuinePublisher)),
+      genuine_provenance_anchor_commitment_v2: anchorCommitment(
+        anchorPreimageV2("provenance", provenanceDigest, provenanceSigner)),
+      // superseded v1 (fused digest‖sig) — retained for lineage, not what gets stamped
+      genuine_delivery_anchor_commitment_v1: anchorCommitment(
         anchorPreimage(genuineDigest, delivery.signature, { name: EXPECTED_DOMAIN.name, chainId: EXPECTED_DOMAIN.chainId })),
-      genuine_provenance_anchor_commitment: anchorCommitment(
-        anchorPreimage(provenanceDigest, embedded.signature, { name: EXPECTED_DOMAIN.name, chainId: EXPECTED_DOMAIN.chainId })),
     },
     disclosure: {
       two_hashes:

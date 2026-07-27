@@ -18,8 +18,9 @@
     "genuine_delivery_anchor_input": "0xcd7f1fd2045084b3024b07c9cebae1ce8d12f15ca2ea15116785038b57642f11",
     "genuine_provenance_eip712_digest": "0x4e48dc83731e9092e5ad0078293434264ab1488a778d03cd637a933c70eb8c78",
     "genuine_provenance_anchor_input": "0xbcbfbcce8ed01cfec9d83c4bcff315949d483b95ac199ae64c324a3f0da5c2f8",
-    "genuine_delivery_anchor_commitment": "0x1cd827f54a0eacefab5a52e8ce857b5e0a570c30bff95b7dad22e3a21c8015da",
-    "genuine_provenance_anchor_commitment": "0x8a1ff5a6bb18f9a65a89a87bbdfeafa73527b102b5b6bca718f3d3510febbd1d"
+    "genuine_delivery_anchor_commitment_v2": "0x414266f604faf0a5fb2a2be1a149440c6087630ada7b30ecb6ad0f1e29fc1260",
+    "genuine_provenance_anchor_commitment_v2": "0x275910567a7494806421f4656e534fad44d37c8455a7354e1816246757daaeb6",
+    "genuine_delivery_anchor_commitment_v1": "0x1cd827f54a0eacefab5a52e8ce857b5e0a570c30bff95b7dad22e3a21c8015da"
   },
   "disclosure": {
     "two_hashes": "TWO hashes, never conflated. (1) receipt payloadHash = keccak256(payload bytes). (2) anchor_input = SHA-256(eip712_digest ‖ signature). keccak256 is the receipt's own integrity hash; SHA-256 is only the hand-off to the anchor leg.",
