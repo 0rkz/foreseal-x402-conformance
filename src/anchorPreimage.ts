@@ -47,9 +47,13 @@ function requireHex(label: string, v: string, byteLen: number): string {
 /** The exact stamped bytes. Fails closed on a malformed digest or signature rather than
  *  emitting a preimage that would anchor a value nobody can reproduce. */
 export function anchorPreimage(digest: Hex, signature: Hex, domain: AnchorDomain): Uint8Array {
+  // The format's entire claim is "exactly four LF-terminated lines" — a newline in the domain name
+  // would silently emit five. chainId via BigInt so a large value never renders in exponent form.
+  if (/[\r\n]/.test(domain.name)) throw new Error("domain name must not contain CR or LF");
+  if (!Number.isInteger(domain.chainId) || domain.chainId < 0) throw new Error("chainId must be a non-negative integer");
   const lines = [
     ANCHOR_PREIMAGE_TAG,
-    `domain=eip155:${domain.chainId} ${domain.name}`,
+    `domain=eip155:${BigInt(domain.chainId).toString()} ${domain.name}`,
     `digest=${requireHex("digest", digest, 32)}`,
     `sig=${requireHex("sig", signature, 65)}`,
   ];

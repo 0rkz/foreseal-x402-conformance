@@ -108,7 +108,7 @@ npm run verify                      # or: npm run verify -- path/to/capture.json
 
 # 2) the conformance vector — 2 genuine + 7 adversarial (all must reject), in BOTH languages:
 npm run vector                      # TypeScript (viem)
-pip install eth_account             # (in a venv, per the note below) — for the Python leg
+python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
 npm run vector:py                   # Python  (eth_account) — same vector.json, cross-impl parity
 npm run typecheck
 ```
@@ -196,6 +196,7 @@ conformance/generate_vector.ts   producer (the real verifier is the oracle)
 conformance/run_vector.py        Python cross-impl runner
 conformance/anchor_preimage.py   the v1 emitter in Python — must match the TS bytes exactly
 LICENSE / NOTICE                 Apache-2.0, plus the AGPL carve-out for the vendored checker
+requirements.txt                 Python deps for both the vector and the settlement rail
 conformance/x402-settlement-v0/  the #2666 payperbyte rail:
     _check_independent.py        upstream checker, vendored byte-identical (sha256-pinned) — AGPL-3.0
     LICENSE.upstream-AGPL-3.0    upstream terms for that one file

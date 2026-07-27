@@ -43,6 +43,10 @@ def _require_hex(label: str, v: str, byte_len: int) -> str:
 
 def anchor_preimage(digest: str, signature: str, name: str, chain_id: int) -> bytes:
     """The exact stamped bytes. Fails closed on malformed input."""
+    if "\n" in name or "\r" in name:
+        raise ValueError("domain name must not contain CR or LF")
+    if not isinstance(chain_id, int) or chain_id < 0:
+        raise ValueError("chainId must be a non-negative integer")
     lines = [
         TAG,
         f"domain=eip155:{chain_id} {name}",
