@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-impl NEGATIVE tests for foreseal-receipt-anchor/v1.
+"""Cross-impl NEGATIVE tests for the superseded foreseal-receipt-anchor/v1 shape.
 
 The happy path was never going to reveal a divergence — both emitters were always going to agree
 on a well-formed receipt. What matters for an interop format is that two independent
