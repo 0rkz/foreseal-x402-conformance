@@ -59,7 +59,16 @@ export type Tier = "delivery" | "provenance";
  */
 export function anchorPreimageV2(tier: Tier, digest: Hex, signer: string): Uint8Array {
   if (tier !== "delivery" && tier !== "provenance") throw new Error(`unknown tier: ${tier}`);
-  const checksummed = getAddress(signer); // EIP-55; throws on a malformed address
+  const checksummed = getAddress(signer); // EIP-55 form; throws on a malformed address
+  // viem's getAddress does NOT reject a bad checksum — it silently re-checksums whatever it is
+  // given, so a mistyped signer would be normalised into a valid-looking preimage and stamped,
+  // committing an address nobody meant. The EIP-55 checksum exists precisely to catch that typo,
+  // so honour it: accept the checksummed form or all-lowercase (which carries no checksum to
+  // violate), reject any other casing. Matches conformance/anchor_preimage.py exactly — the
+  // cross-impl v2 negative battery pins the two together.
+  if (signer !== checksummed && signer !== signer.toLowerCase()) {
+    throw new Error(`signer ${signer} has a bad EIP-55 checksum (expected ${checksummed})`);
+  }
   const lines = [
     ANCHOR_PREIMAGE_TAG_V2,
     `tier=${tier}`,
